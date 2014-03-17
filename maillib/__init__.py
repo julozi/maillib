@@ -154,7 +154,7 @@ class Message(object):
         not be found.
         """
         for part in self._message.walk():
-             if part.get_content_type() == 'text/plain':
+             if part.get_content_type() == 'text/plain' and part.get_filename() is None:
                  return decode_part(part)
         return None
 
@@ -178,7 +178,10 @@ class Message(object):
             # Assume that attachments have filenames
             if part.get_filename() is not None:
                 if part.get_content_maintype() == 'text':
-                    content = decode_part(part)
+                    try:
+                        content = decode_part(part)
+                    except TypeError:
+                        content = part.get_payload(decode=True)
                 else:
                     content = part.get_payload(decode=True)
                 yield (part.get_filename(), content)
